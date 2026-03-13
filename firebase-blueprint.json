@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user information and their current plan tier.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "planId": { "type": "string", "description": "Reference to the Plan entity" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["uid", "email", "planId", "role"]
+    },
+    "Plan": {
+      "title": "Quota Plan",
+      "description": "Defines tiered quota limits and features.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "monthlyQuota": { "type": "integer" },
+        "burstAllowance": { "type": "integer" },
+        "price": { "type": "number" }
+      },
+      "required": ["id", "name", "monthlyQuota"]
+    },
+    "Quota": {
+      "title": "User Quota State",
+      "description": "Real-time tracking of a user's consumed quota.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "consumed": { "type": "integer" },
+        "limit": { "type": "integer" },
+        "lastReset": { "type": "string", "format": "date-time" },
+        "softLimitReached": { "type": "boolean" }
+      },
+      "required": ["userId", "consumed", "limit"]
+    },
+    "UsageLedger": {
+      "title": "Usage Ledger",
+      "description": "Idempotent record of every quota-consuming operation.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "UUID-based request token" },
+        "userId": { "type": "string" },
+        "operationType": { "type": "string" },
+        "amount": { "type": "integer" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["success", "failed", "refunded"] }
+      },
+      "required": ["id", "userId", "operationType", "amount", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/plans/{planId}": {
+      "schema": "Plan",
+      "description": "Available quota plans"
+    },
+    "/quotas/{userId}": {
+      "schema": "Quota",
+      "description": "Real-time user quota tracking"
+    },
+    "/ledger/{requestId}": {
+      "schema": "UsageLedger",
+      "description": "Audit log of all usage"
+    }
+  }
+}
